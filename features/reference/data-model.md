@@ -1,6 +1,6 @@
 # Data Model Reference
 
-**Status:** Feature 3 — Todo List Item Management (includes Features 1–2).
+**Status:** Feature 4 — User Profile Management (includes Features 1–3).
 
 ## Tables
 
@@ -14,7 +14,7 @@
 | `email` | STRING | Required, unique |
 | `username` | STRING(100) | Required, unique; stored lowercase |
 | `password` | STRING(255) | Required; bcrypt hash only; excluded from default scope |
-| `role` | STRING(20) | Required; default `worker` |
+| `role` | STRING(20) | Required; default `worker`; **read-only** via profile API (Feature 4) |
 
 ### `sessions`
 
@@ -66,3 +66,4 @@
 | `users`, `sessions` | Feature 1 |
 | `lists` | Feature 2 |
 | `todos` | Feature 3 |
+| Profile field updates on `users` (no new table) | Feature 4 |
