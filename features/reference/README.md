@@ -29,4 +29,11 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 
 | Area | Introduced |
 |------|------------|
-| *(none yet)* | Add rows as features merge to `dev` |
+| Auth, sessions, register/login/logout | Feature 1 |
+| `users` and `sessions` tables | Feature 1 |
+| List CRUD, dashboard lists view, MenuBar | Feature 2 |
+| `lists` table | Feature 2 |
+| Todo item CRUD and list-items dialog | Feature 3 |
+| `todos` table | Feature 3 |
+| Profile GET/PUT and MenuBar dropdown | Feature 4 |
+| Todo `dueDate` and overdue styling | Feature 5 |

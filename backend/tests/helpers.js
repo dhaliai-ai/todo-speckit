@@ -1,12 +1,33 @@
+import request from "supertest";
+import app from "../server.js";
 import db from "../app/models/index.js";
 
-/** Sync schema for tests (no models registered in the starter shell). */
 export const syncTestDatabase = async () => {
   await db.sequelize.sync({ force: true });
 };
 
-/**
- * Add feature-specific helpers here as you implement auth/lists/etc.
- * Example after Feature 1:
- *   export const registerUser = async (overrides = {}) => { … }
- */
+export const validRegisterPayload = (overrides = {}) => ({
+  fName: "Jane",
+  lName: "Doe",
+  email: "jdoe@example.com",
+  username: "jdoe",
+  password: "password1",
+  ...overrides,
+});
+
+export const registerUser = async (overrides = {}) => {
+  return request(app).post("/todo/register").send(validRegisterPayload(overrides));
+};
+
+export const authHeader = (token) => ({ Authorization: `Bearer ${token}` });
+
+export const createList = async (token, name) => {
+  return request(app).post("/todo/lists").set(authHeader(token)).send({ name });
+};
+
+export const createTodo = async (token, listId, title) => {
+  return request(app)
+    .post(`/todo/lists/${listId}/todos`)
+    .set(authHeader(token))
+    .send({ title });
+};
