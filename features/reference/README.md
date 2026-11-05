@@ -33,3 +33,5 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | `users` and `sessions` tables | Feature 1 |
 | List CRUD, dashboard lists view, MenuBar | Feature 2 |
 | `lists` table | Feature 2 |
+| Todo item CRUD and list-items dialog | Feature 3 |
+| `todos` table | Feature 3 |
