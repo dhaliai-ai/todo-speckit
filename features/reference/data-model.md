@@ -1,6 +1,6 @@
 # Data Model Reference
 
-**Status:** Feature 2 — Todo List Management (includes Feature 1 auth).
+**Status:** Feature 3 — Todo List Item Management (includes Features 1–2).
 
 ## Tables
 
@@ -36,12 +36,28 @@
 | `createdAt` | DATE | Sequelize timestamps |
 | `updatedAt` | DATE | Sequelize timestamps |
 
+### `todos`
+
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | INTEGER PK | Auto-increment |
+| `listId` | INTEGER FK | Required; references `lists.id`; cascade delete with parent list |
+| `title` | STRING(255) | Required; max 255 characters; trimmed before save |
+| `completed` | BOOLEAN | Required; default `false` |
+| `userId` | INTEGER FK | Required; references `users.id`; set from `req.user.id` on create |
+| `createdAt` | DATE | Sequelize timestamps |
+| `updatedAt` | DATE | Sequelize timestamps |
+
 ## Associations
 
 - User has many Sessions (`foreignKey: userId`)
 - Session belongs to User (`foreignKey: userId`)
 - User has many Lists (`foreignKey: userId`)
 - List belongs to User (`foreignKey: userId`)
+- User has many Todos (`foreignKey: userId`)
+- Todo belongs to User (`foreignKey: userId`)
+- List has many Todos (`foreignKey: listId`, `onDelete: CASCADE`)
+- Todo belongs to List (`foreignKey: listId`)
 
 ## Feature provenance
 
@@ -49,3 +65,4 @@
 |------|------------|
 | `users`, `sessions` | Feature 1 |
 | `lists` | Feature 2 |
+| `todos` | Feature 3 |

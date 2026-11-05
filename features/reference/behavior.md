@@ -53,4 +53,22 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Lists returned alphabetically by name | `findAll` `order` | Feature 2 |
 | Dashboard is a **single view** (no sidebar); add/edit/delete use dialogs | `Dashboard.vue` | Feature 2 |
 | Empty state copy: **No lists yet. Create your first list.** | `Dashboard.vue` | Feature 2 |
-| Row icon actions: **Edit list**, **Delete list** (`size="small"`) | `Dashboard.vue` | Feature 2 |
+| Row icon actions: **Items**, **Edit list**, **Delete list** (`size="small"`) | `Dashboard.vue` | Feature 2–3 |
+
+## Todos
+
+| Rule | Enforcement | Introduced |
+|------|-------------|------------|
+| A todo belongs to one list and one user for its lifetime | Todo create | Feature 3 |
+| Nested GET/POST require an owned parent list; otherwise `404` `List with id=<id> not found.` | `getAccessibleListOrNull` | Feature 3 |
+| PUT/DELETE require owned todo **and** owned parent list; otherwise `404` `Todo with id=<id> not found.` | `getAccessibleTodoOrNull` | Feature 3 |
+| Create sets `userId`/`listId` from server context; body ownership fields ignored | Todo controller | Feature 3 |
+| New todos default to `completed: false` | Todo create | Feature 3 |
+| `completed` must be a boolean when provided | Todo update | Feature 3 |
+| Titles are trimmed; empty/whitespace → `Todo title is required.` | Client + API | Feature 3 |
+| Titles longer than 255 characters → `Todo title must be 255 characters or fewer.` | API | Feature 3 |
+| Todos ordered incomplete first, then `createdAt` ascending | `findAllByList` | Feature 3 |
+| Deleting a list deletes its todos | Sequelize `onDelete: CASCADE` | Feature 3 |
+| Items dialog empty copy: **No todos in this list yet.** | `ListItemsDialog.vue` | Feature 3 |
+| Completed todos use struck-through / muted title styling | `ListItemsDialog.vue` | Feature 3 |
+| **+ Add Item** lives only inside the items dialog | `ListItemsDialog.vue` | Feature 3 |

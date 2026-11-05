@@ -1,6 +1,6 @@
 # API Reference
 
-**Status:** Feature 2 — Todo List Management (includes Feature 1 auth).
+**Status:** Feature 3 — Todo List Item Management (includes Features 1–2).
 
 API mount path is `/todo` (`backend/server.js`). Authenticated routes require `Authorization: Bearer <token>`.
 
@@ -18,8 +18,12 @@ Responses are flat JSON (no `{ success, data }` envelope). Errors: `{ "message":
 | `POST` | `/todo/lists` | Yes | Create a list owned by the authenticated user |
 | `PUT` | `/todo/lists/:listId` | Yes | Rename an owned list |
 | `DELETE` | `/todo/lists/:listId` | Yes | Delete an owned list |
+| `GET` | `/todo/lists/:listId/todos` | Yes | Fetch todos in an owned list (incomplete first, then `createdAt` ASC) |
+| `POST` | `/todo/lists/:listId/todos` | Yes | Add a todo to an owned list |
+| `PUT` | `/todo/todos/:id` | Yes | Update an owned todo (`title` and/or `completed`) |
+| `DELETE` | `/todo/todos/:id` | Yes | Delete an owned todo |
 
-`:listId` must be a whole positive integer (`^[1-9]\d*$`). Values such as `12abc` return `400`.
+`:listId` and todo `:id` must be whole positive integers (`^[1-9]\d*$`). Values such as `12abc`, `0`, `-1`, and decimals return `400`.
 
 ### Register / login success payload
 
@@ -59,6 +63,30 @@ HTTP `201` (register) or `200` (login):
 
 `GET /todo/lists` returns an array of these objects.
 
+### Create todo request
+
+```json
+{ "title": "Buy milk" }
+```
+
+`userId`, `listId`, and `completed` in the body are ignored. Ownership is `req.user.id`; `listId` comes from the owned route param; `completed` defaults to `false`.
+
+### Todo success payload (`200` / `201`)
+
+```json
+{
+  "id": 10,
+  "listId": 1,
+  "title": "Buy milk",
+  "completed": false,
+  "userId": 42,
+  "createdAt": "2026-07-02T12:05:00.000Z",
+  "updatedAt": "2026-07-02T12:05:00.000Z"
+}
+```
+
+`GET /todo/lists/:listId/todos` returns an array of these objects.
+
 ### Auth errors
 
 | Situation | Status | Body |
@@ -78,6 +106,17 @@ HTTP `201` (register) or `200` (login):
 | Malformed `listId` | `400` | `{ "message": "List id must be a positive integer." }` |
 | Missing or unowned list | `404` | `{ "message": "List with id=<id> not found." }` |
 
+### Todo errors
+
+| Situation | Status | Body |
+|-----------|--------|------|
+| Empty or whitespace title | `400` | `{ "message": "Todo title is required." }` |
+| Title longer than 255 characters | `400` | `{ "message": "Todo title must be 255 characters or fewer." }` |
+| `completed` provided but not a boolean | `400` | `{ "message": "Completed must be a boolean." }` |
+| Malformed `listId` or todo `id` | `400` | `{ "message": "<List id|Todo id> must be a positive integer." }` |
+| Missing or unowned parent list | `404` | `{ "message": "List with id=<id> not found." }` |
+| Missing or unowned todo | `404` | `{ "message": "Todo with id=<id> not found." }` |
+
 ## Conventions
 
 - Flat JSON responses (no `{ success, data }` envelope).
@@ -92,3 +131,4 @@ HTTP `201` (register) or `200` (login):
 | Health | Starter |
 | Register, login, logout | Feature 1 |
 | List CRUD | Feature 2 |
+| Todo item CRUD | Feature 3 |

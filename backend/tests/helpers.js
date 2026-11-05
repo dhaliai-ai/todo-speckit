@@ -24,3 +24,10 @@ export const authHeader = (token) => ({ Authorization: `Bearer ${token}` });
 export const createList = async (token, name) => {
   return request(app).post("/todo/lists").set(authHeader(token)).send({ name });
 };
+
+export const createTodo = async (token, listId, title) => {
+  return request(app)
+    .post(`/todo/lists/${listId}/todos`)
+    .set(authHeader(token))
+    .send({ title });
+};
