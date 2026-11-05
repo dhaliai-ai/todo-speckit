@@ -3,6 +3,23 @@ import logger from "../config/logger.js";
 
 const Session = db.session;
 const User = db.user;
+const List = db.list;
+
+export const parsePositiveIntId = (value) => {
+  if (!/^[1-9]\d*$/.test(String(value))) {
+    return NaN;
+  }
+
+  return Number(value);
+};
+
+export const getAccessibleListOrNull = async (req, listId) => {
+  const row = await List.findOne({
+    where: { id: listId, userId: req.user.id },
+  });
+
+  return row ?? null;
+};
 
 export const authenticate = async (req, res, next) => {
   try {

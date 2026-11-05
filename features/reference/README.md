@@ -31,4 +31,5 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 |------|------------|
 | Auth, sessions, register/login/logout | Feature 1 |
 | `users` and `sessions` tables | Feature 1 |
-| `GET /todo/lists` empty stub | Feature 1 (CRUD is Feature 2) |
+| List CRUD, dashboard lists view, MenuBar | Feature 2 |
+| `lists` table | Feature 2 |

@@ -1,6 +1,7 @@
 /**
  * Feature 1 — User Authentication & Session Management
- * Spec: features/feature-1-user-auth.md
+ * Feature 2 — Todo List Management
+ * Spec: features/feature-1-user-auth.md, features/feature-2-todo-list-management.md
  */
 import { beforeEach, describe, expect, it } from "vitest";
 import router from "../src/router.js";
@@ -32,6 +33,23 @@ describe("Feature 1 — User Authentication & Session Management", () => {
 
   describe("US-1.5 — Block unauthenticated access", () => {
     it("Unauthenticated user accesses a protected route", async () => {
+      Utils.removeItem("user");
+      await router.replace("/login");
+      await router.replace("/");
+      await router.isReady();
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 2 — Todo List Management", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  describe("US-2.5 — Private lists only", () => {
+    it("Unauthenticated user accesses the dashboard", async () => {
       Utils.removeItem("user");
       await router.replace("/login");
       await router.replace("/");

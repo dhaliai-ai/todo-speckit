@@ -30,9 +30,14 @@ const app = express();
 
 app.use(morgan("combined", { stream: logger.stream }));
 
+const allowedOrigins = [
+  "http://localhost:8082",
+  "http://localhost:8083",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:8082",
+    origin: allowedOrigins,
     credentials: true,
   })
 );
