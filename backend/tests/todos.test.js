@@ -1,6 +1,7 @@
 /**
  * Feature 3 — Todo List Item Management
- * Spec: features/feature-3-todo-list-item-management.md
+ * Feature 5 — Todo Due Date
+ * Spec: features/feature-3-todo-list-item-management.md, features/feature-5-todo-due-date.md
  */
 import request from "supertest";
 import app from "../server.js";
@@ -250,6 +251,188 @@ describe("Feature 3 — Todo List Item Management", () => {
       expect(res.status).toBe(200);
       expect(await db.todo.findByPk(milk.body.id)).toBeNull();
       expect(await db.todo.findByPk(eggs.body.id)).toBeNull();
+    });
+  });
+});
+
+describe("Feature 5 — Todo Due Date", () => {
+  beforeEach(async () => {
+    await syncTestDatabase();
+  });
+
+  describe("US-5.1 — Set a due date when creating a todo", () => {
+    it("User adds a todo with a due date", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+
+      const res = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Buy milk", dueDate: "2026-07-15" });
+
+      expect(res.status).toBe(201);
+      expect(res.body.dueDate).toBe("2026-07-15");
+      expect(res.body.title).toBe("Buy milk");
+    });
+
+    it("User adds a todo without a due date", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+
+      const res = await createTodo(user.body.token, list.body.id, "Buy milk");
+
+      expect(res.status).toBe(201);
+      expect(res.body.dueDate).toBeNull();
+    });
+
+    it("API rejects an invalid due date on create", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+
+      const res = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Task", dueDate: "not-a-date" });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        message: "Due date must be a valid date in YYYY-MM-DD format.",
+      });
+      expect(await db.todo.count()).toBe(0);
+    });
+  });
+
+  describe("US-5.3 — Edit or clear a due date", () => {
+    it("User sets a due date when editing a todo", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+      const milk = await createTodo(user.body.token, list.body.id, "Buy milk");
+
+      const res = await request(app)
+        .put(`/todo/todos/${milk.body.id}`)
+        .set(authHeader(user.body.token))
+        .send({ dueDate: "2026-07-20" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.dueDate).toBe("2026-07-20");
+    });
+
+    it("User clears a due date when editing a todo", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+      const milk = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Buy milk", dueDate: "2026-07-20" });
+
+      const res = await request(app)
+        .put(`/todo/todos/${milk.body.id}`)
+        .set(authHeader(user.body.token))
+        .send({ dueDate: null });
+
+      expect(res.status).toBe(200);
+      expect(res.body.dueDate).toBeNull();
+    });
+
+    it("API rejects an invalid due date on update", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+      const milk = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Buy milk", dueDate: "2026-07-15" });
+
+      const res = await request(app)
+        .put(`/todo/todos/${milk.body.id}`)
+        .set(authHeader(user.body.token))
+        .send({ dueDate: "2026-99-99" });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        message: "Due date must be a valid date in YYYY-MM-DD format.",
+      });
+
+      const stored = await db.todo.findByPk(milk.body.id);
+      expect(stored.dueDate).toBe("2026-07-15");
+    });
+
+    it("User cannot set due date on another user's todo", async () => {
+      const owner = await registerUser();
+      const other = await registerOtherUser();
+      const list = await createList(owner.body.token, "Groceries");
+      const milk = await createTodo(owner.body.token, list.body.id, "Buy milk");
+
+      const res = await request(app)
+        .put(`/todo/todos/${milk.body.id}`)
+        .set(authHeader(other.body.token))
+        .send({ dueDate: "2026-07-15" });
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({
+        message: `Todo with id=${milk.body.id} not found.`,
+      });
+
+      const stored = await db.todo.findByPk(milk.body.id);
+      expect(stored.dueDate).toBeNull();
+    });
+
+    it("Omitting dueDate on update leaves the existing value", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+      const milk = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Buy milk", dueDate: "2026-07-15" });
+
+      const res = await request(app)
+        .put(`/todo/todos/${milk.body.id}`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Buy oat milk" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.title).toBe("Buy oat milk");
+      expect(res.body.dueDate).toBe("2026-07-15");
+    });
+
+    it("Empty string dueDate is stored as null", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+
+      const created = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Buy milk", dueDate: "" });
+
+      expect(created.status).toBe(201);
+      expect(created.body.dueDate).toBeNull();
+
+      const withDate = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Buy eggs", dueDate: "2026-07-15" });
+
+      const cleared = await request(app)
+        .put(`/todo/todos/${withDate.body.id}`)
+        .set(authHeader(user.body.token))
+        .send({ dueDate: "   " });
+
+      expect(cleared.status).toBe(200);
+      expect(cleared.body.dueDate).toBeNull();
+    });
+
+    it("API rejects an impossible calendar date", async () => {
+      const user = await registerUser();
+      const list = await createList(user.body.token, "Groceries");
+
+      const res = await request(app)
+        .post(`/todo/lists/${list.body.id}/todos`)
+        .set(authHeader(user.body.token))
+        .send({ title: "Task", dueDate: "2026-02-31" });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        message: "Due date must be a valid date in YYYY-MM-DD format.",
+      });
     });
   });
 });

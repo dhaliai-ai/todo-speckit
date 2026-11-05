@@ -9,6 +9,9 @@ import {
 const Todo = db.todo;
 const exports = {};
 
+const DUE_DATE_INVALID = "Due date must be a valid date in YYYY-MM-DD format.";
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 const validateTitle = (title) => {
   if (title == null || String(title).trim() === "") {
     return { error: "Todo title is required." };
@@ -20,6 +23,38 @@ const validateTitle = (title) => {
   }
 
   return { title: trimmed };
+};
+
+const parseDueDateField = (body) => {
+  if (body == null || !Object.prototype.hasOwnProperty.call(body, "dueDate")) {
+    return { omitted: true };
+  }
+
+  const value = body.dueDate;
+  if (value === null || (typeof value === "string" && value.trim() === "")) {
+    return { dueDate: null };
+  }
+
+  if (typeof value !== "string") {
+    return { error: DUE_DATE_INVALID };
+  }
+
+  const trimmed = value.trim();
+  if (!DATE_ONLY_REGEX.test(trimmed)) {
+    return { error: DUE_DATE_INVALID };
+  }
+
+  const [year, month, day] = trimmed.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return { error: DUE_DATE_INVALID };
+  }
+
+  return { dueDate: trimmed };
 };
 
 const requirePositiveId = (value, label, res) => {
@@ -69,6 +104,11 @@ exports.create = async (req, res) => {
     return res.status(400).send({ message: validated.error });
   }
 
+  const dueDateField = parseDueDateField(req.body);
+  if (dueDateField.error) {
+    return res.status(400).send({ message: dueDateField.error });
+  }
+
   try {
     const list = await getAccessibleListOrNull(req, listId);
     if (!list) {
@@ -80,6 +120,7 @@ exports.create = async (req, res) => {
       listId: list.id,
       userId: req.user.id,
       completed: false,
+      dueDate: dueDateField.omitted ? null : dueDateField.dueDate,
     });
     return res.status(201).send(todo);
   } catch (err) {
@@ -95,7 +136,12 @@ exports.update = async (req, res) => {
   }
 
   const { title, completed } = req.body ?? {};
-  if (title === undefined && completed === undefined) {
+  const dueDateField = parseDueDateField(req.body);
+  if (dueDateField.error) {
+    return res.status(400).send({ message: dueDateField.error });
+  }
+
+  if (title === undefined && completed === undefined && dueDateField.omitted) {
     return res.status(400).send({ message: "Title or completed is required." });
   }
 
@@ -123,6 +169,9 @@ exports.update = async (req, res) => {
     }
     if (completed !== undefined) {
       todo.completed = completed;
+    }
+    if (!dueDateField.omitted) {
+      todo.dueDate = dueDateField.dueDate;
     }
 
     await todo.save();

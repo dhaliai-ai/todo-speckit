@@ -1,6 +1,6 @@
 # API Reference
 
-**Status:** Feature 4 — User Profile Management (includes Features 1–3).
+**Status:** Feature 5 — Todo Due Date (includes Features 1–4).
 
 API mount path is `/todo` (`backend/server.js`). Authenticated routes require `Authorization: Bearer <token>`.
 
@@ -20,7 +20,7 @@ Responses are flat JSON (no `{ success, data }` envelope). Errors: `{ "message":
 | `DELETE` | `/todo/lists/:listId` | Yes | Delete an owned list |
 | `GET` | `/todo/lists/:listId/todos` | Yes | Fetch todos in an owned list (incomplete first, then `createdAt` ASC) |
 | `POST` | `/todo/lists/:listId/todos` | Yes | Add a todo to an owned list |
-| `PUT` | `/todo/todos/:id` | Yes | Update an owned todo (`title` and/or `completed`) |
+| `PUT` | `/todo/todos/:id` | Yes | Update an owned todo (`title`, `completed`, and/or `dueDate`) |
 | `DELETE` | `/todo/todos/:id` | Yes | Delete an owned todo |
 | `GET` | `/todo/users/:id` | Yes | Fetch the authenticated user's own profile |
 | `PUT` | `/todo/users/:id` | Yes | Update the authenticated user's own profile |
@@ -68,10 +68,29 @@ HTTP `201` (register) or `200` (login):
 ### Create todo request
 
 ```json
-{ "title": "Buy milk" }
+{
+  "title": "Buy milk",
+  "dueDate": "2026-07-15"
+}
 ```
 
-`userId`, `listId`, and `completed` in the body are ignored. Ownership is `req.user.id`; `listId` comes from the owned route param; `completed` defaults to `false`.
+`dueDate` is optional (`YYYY-MM-DD`). Omit it, send `null`, or send an empty string for no due date. `userId`, `listId`, and `completed` in the body are ignored. Ownership is `req.user.id`; `listId` comes from the owned route param; `completed` defaults to `false`.
+
+**Update body** (any combination; omit a field to leave it unchanged except `dueDate: null` or `""` clears the date):
+
+```json
+{
+  "title": "Buy oat milk",
+  "completed": false,
+  "dueDate": "2026-07-20"
+}
+```
+
+Clear due date:
+
+```json
+{ "dueDate": null }
+```
 
 ### Todo success payload (`200` / `201`)
 
@@ -81,6 +100,7 @@ HTTP `201` (register) or `200` (login):
   "listId": 1,
   "title": "Buy milk",
   "completed": false,
+  "dueDate": "2026-07-15",
   "userId": 42,
   "createdAt": "2026-07-02T12:05:00.000Z",
   "updatedAt": "2026-07-02T12:05:00.000Z"
@@ -146,6 +166,7 @@ Password hashes are never returned.
 | Empty or whitespace title | `400` | `{ "message": "Todo title is required." }` |
 | Title longer than 255 characters | `400` | `{ "message": "Todo title must be 255 characters or fewer." }` |
 | `completed` provided but not a boolean | `400` | `{ "message": "Completed must be a boolean." }` |
+| Invalid or impossible `dueDate` | `400` | `{ "message": "Due date must be a valid date in YYYY-MM-DD format." }` |
 | Malformed `listId` or todo `id` | `400` | `{ "message": "<List id|Todo id> must be a positive integer." }` |
 | Missing or unowned parent list | `404` | `{ "message": "List with id=<id> not found." }` |
 | Missing or unowned todo | `404` | `{ "message": "Todo with id=<id> not found." }` |
@@ -178,3 +199,4 @@ Password hashes are never returned.
 | List CRUD | Feature 2 |
 | Todo item CRUD | Feature 3 |
 | Profile GET/PUT | Feature 4 |
+| Todo `dueDate` on create/update | Feature 5 |

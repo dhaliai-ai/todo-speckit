@@ -1,6 +1,6 @@
 # Data Model Reference
 
-**Status:** Feature 4 — User Profile Management (includes Features 1–3).
+**Status:** Feature 5 — Todo Due Date (includes Features 1–4).
 
 ## Tables
 
@@ -44,6 +44,7 @@
 | `listId` | INTEGER FK | Required; references `lists.id`; cascade delete with parent list |
 | `title` | STRING(255) | Required; max 255 characters; trimmed before save |
 | `completed` | BOOLEAN | Required; default `false` |
+| `dueDate` | DATEONLY | Nullable; optional on create/update; `YYYY-MM-DD`; `null` means no due date |
 | `userId` | INTEGER FK | Required; references `users.id`; set from `req.user.id` on create |
 | `createdAt` | DATE | Sequelize timestamps |
 | `updatedAt` | DATE | Sequelize timestamps |
@@ -67,3 +68,4 @@
 | `lists` | Feature 2 |
 | `todos` | Feature 3 |
 | Profile field updates on `users` (no new table) | Feature 4 |
+| Todo `dueDate` | Feature 5 |

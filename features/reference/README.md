@@ -36,3 +36,4 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Todo item CRUD and list-items dialog | Feature 3 |
 | `todos` table | Feature 3 |
 | Profile GET/PUT and MenuBar dropdown | Feature 4 |
+| Todo `dueDate` and overdue styling | Feature 5 |
