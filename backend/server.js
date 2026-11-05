@@ -7,8 +7,7 @@ import logger from "./app/config/logger.js";
 
 const shouldAlterSchema =
   process.env.SEQUELIZE_SYNC_ALTER === "true" ||
-  process.env.SEQUELIZE_SYNC_ALTER === "1" ||
-  (process.env.NODE_ENV === "development" && process.env.SEQUELIZE_SYNC_ALTER !== "false");
+  process.env.SEQUELIZE_SYNC_ALTER === "1";
 
 const syncOptions = shouldAlterSchema ? { alter: true } : {};
 
@@ -33,6 +32,7 @@ app.use(morgan("combined", { stream: logger.stream }));
 const allowedOrigins = [
   "http://localhost:8082",
   "http://localhost:8083",
+  "http://localhost:8084",
 ];
 
 app.use(

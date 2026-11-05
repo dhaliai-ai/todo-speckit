@@ -22,6 +22,14 @@ export const getAccessibleListOrNull = async (req, listId) => {
   return row ?? null;
 };
 
+export const getAccessibleUserOrNull = async (req, userId) => {
+  if (userId !== req.user.id) {
+    return null;
+  }
+
+  return User.findByPk(userId);
+};
+
 export const getAccessibleTodoOrNull = async (req, todoId) => {
   const todo = await Todo.findOne({
     where: { id: todoId, userId: req.user.id },

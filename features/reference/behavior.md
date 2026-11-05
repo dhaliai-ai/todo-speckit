@@ -37,7 +37,9 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Signed-in users visiting login/register are redirected home | `router.beforeEach` | Feature 1 |
 | Email rules: required + `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`; messages **Email is required.** / **Enter a valid email address.** | `frontend/src/config/validation.js` `emailRules` | Feature 1 |
 | Password minimum 8 characters; confirm must match | Register form (+ server min length) | Feature 1 |
-| `MenuBar` shows the signed-in name and **Sign out**; hidden on login/register | `App.vue` + `MenuBar.vue` | Feature 2 |
+| `MenuBar` is hidden on login/register | `App.vue` | Feature 2 |
+| `MenuBar` uses a profile icon + dropdown; **Log out** lives only in the dropdown | `MenuBar.vue` | Feature 4 |
+| After profile save, `localStorage` `user` is merged (token/`userId` kept) and `user-logged-in` is dispatched | `MenuBar.vue` | Feature 4 |
 
 ## Lists
 
@@ -72,3 +74,17 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Items dialog empty copy: **No todos in this list yet.** | `ListItemsDialog.vue` | Feature 3 |
 | Completed todos use struck-through / muted title styling | `ListItemsDialog.vue` | Feature 3 |
 | **+ Add Item** lives only inside the items dialog | `ListItemsDialog.vue` | Feature 3 |
+
+## Profile
+
+| Rule | Enforcement | Introduced |
+|------|-------------|------------|
+| A user may GET/PUT only their own profile (`:id` must equal `req.user.id`) | `getAccessibleUserOrNull` | Feature 4 |
+| Cross-user profile access → **404** `User with id=<id> not found.`, never 403 | User controller | Feature 4 |
+| Profile fields trimmed; empty required strings rejected; no save on validation failure | User controller | Feature 4 |
+| Username stored lowercase | User update | Feature 4 |
+| Password optional on PUT; nonblank passwords hashed with bcrypt `SALT_ROUNDS = 10` | User update | Feature 4 |
+| Password hashes never returned | `defaultScope` + `profilePayload` | Feature 4 |
+| `role` is read-only | User update ignores `role` | Feature 4 |
+| Edit Profile uses shared `emailRules` | `MenuBar.vue` | Feature 4 |
+| Menu bar has no standalone **Sign out** button | `MenuBar.vue` | Feature 4 |

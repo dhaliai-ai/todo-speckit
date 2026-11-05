@@ -1,6 +1,6 @@
 # API Reference
 
-**Status:** Feature 3 — Todo List Item Management (includes Features 1–2).
+**Status:** Feature 4 — User Profile Management (includes Features 1–3).
 
 API mount path is `/todo` (`backend/server.js`). Authenticated routes require `Authorization: Bearer <token>`.
 
@@ -22,6 +22,8 @@ Responses are flat JSON (no `{ success, data }` envelope). Errors: `{ "message":
 | `POST` | `/todo/lists/:listId/todos` | Yes | Add a todo to an owned list |
 | `PUT` | `/todo/todos/:id` | Yes | Update an owned todo (`title` and/or `completed`) |
 | `DELETE` | `/todo/todos/:id` | Yes | Delete an owned todo |
+| `GET` | `/todo/users/:id` | Yes | Fetch the authenticated user's own profile |
+| `PUT` | `/todo/users/:id` | Yes | Update the authenticated user's own profile |
 
 `:listId` and todo `:id` must be whole positive integers (`^[1-9]\d*$`). Values such as `12abc`, `0`, `-1`, and decimals return `400`.
 
@@ -87,6 +89,37 @@ HTTP `201` (register) or `200` (login):
 
 `GET /todo/lists/:listId/todos` returns an array of these objects.
 
+### Update profile request
+
+```json
+{
+  "fName": "Jane",
+  "lName": "Doe",
+  "email": "jane@example.com",
+  "username": "jdoe",
+  "password": "newpassword123"
+}
+```
+
+`password` is optional. Omit it or send a blank value to leave the current password unchanged. `role` in the body is ignored.
+
+### Profile success payload (`200`)
+
+```json
+{
+  "id": 42,
+  "fName": "Jane",
+  "lName": "Doe",
+  "email": "jane@example.com",
+  "username": "jdoe",
+  "role": "worker",
+  "createdAt": "2026-07-02T12:00:00.000Z",
+  "updatedAt": "2026-07-02T12:05:00.000Z"
+}
+```
+
+Password hashes are never returned.
+
 ### Auth errors
 
 | Situation | Status | Body |
@@ -117,6 +150,18 @@ HTTP `201` (register) or `200` (login):
 | Missing or unowned parent list | `404` | `{ "message": "List with id=<id> not found." }` |
 | Missing or unowned todo | `404` | `{ "message": "Todo with id=<id> not found." }` |
 
+### Profile errors
+
+| Situation | Status | Body |
+|-----------|--------|------|
+| Missing required field | `400` | `{ "message": "First name is required." }` (same pattern as register) |
+| Invalid email | `400` | `{ "message": "Enter a valid email address." }` |
+| Password present and shorter than 8 characters | `400` | `{ "message": "Password must be at least 8 characters." }` |
+| Duplicate username | `400` | `{ "message": "Username is already taken." }` |
+| Duplicate email | `400` | `{ "message": "Email is already registered." }` |
+| Malformed user `id` | `400` | `{ "message": "User id must be a positive integer." }` |
+| Other user's profile | `404` | `{ "message": "User with id=<id> not found." }` |
+
 ## Conventions
 
 - Flat JSON responses (no `{ success, data }` envelope).
@@ -132,3 +177,4 @@ HTTP `201` (register) or `200` (login):
 | Register, login, logout | Feature 1 |
 | List CRUD | Feature 2 |
 | Todo item CRUD | Feature 3 |
+| Profile GET/PUT | Feature 4 |

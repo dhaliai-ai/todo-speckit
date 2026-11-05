@@ -35,3 +35,4 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | `lists` table | Feature 2 |
 | Todo item CRUD and list-items dialog | Feature 3 |
 | `todos` table | Feature 3 |
+| Profile GET/PUT and MenuBar dropdown | Feature 4 |
